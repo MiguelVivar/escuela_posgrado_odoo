@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y postgresql-client locales && \
 RUN mkdir -p /mnt/extra-addons
 
 # Copiar archivos de configuración
-COPY ./config/odoo-railway.conf /etc/odoo/
+COPY ./config/odoo.conf /etc/odoo/
 COPY ./start.sh /usr/local/bin/start.sh
 
 # Copiar addons solo si el directorio existe y no está vacío
