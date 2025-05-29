@@ -9,11 +9,25 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         postgresql-client \
         postgresql-client-common \
-        locales \
-        wkhtmltopdf && \
+        locales && \
     rm -rf /var/lib/apt/lists/* && \
     locale-gen C.UTF-8 && \
     dpkg-reconfigure --frontend=noninteractive locales
+
+# Instalar wkhtmltopdf por separado con dependencias explícitas
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        xfonts-75dpi \
+        xfonts-base \
+        fontconfig \
+        libjpeg62-turbo \
+        libx11-6 \
+        libxext6 \
+        libxrender1 \
+        xfonts-utils && \
+    wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.bullseye_amd64.deb -O /tmp/wkhtmltox.deb && \
+    dpkg -i /tmp/wkhtmltox.deb || apt-get install -yf && \
+    rm -rf /var/lib/apt/lists/* /tmp/wkhtmltox.deb
 
 # Configurar directorios
 RUN mkdir -p /mnt/extra-addons /var/log/odoo && \
