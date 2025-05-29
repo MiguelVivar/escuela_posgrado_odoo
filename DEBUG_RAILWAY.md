@@ -2,12 +2,23 @@
 
 ## Problema identificado
 
-El error que estás viendo indica que aunque PostgreSQL está disponible y acepta conexiones, Odoo no puede completar la inicialización de la base de datos. Esto puede deberse a:
+El error que estás viendo indica que el usuario `odoo` no existe en PostgreSQL. Railway crea automáticamente la base de datos pero no crea usuarios personalizados. Esto causa:
 
-1. **Permisos insuficientes del usuario de base de datos**
-2. **Problemas de timeout en la conexión**
-3. **Configuración incorrecta de variables de entorno**
-4. **Problemas específicos de Railway con PostgreSQL**
+1. **Usuario "odoo" no existe** - El error principal
+2. **Fallo de autenticación** - Password authentication failed for user "odoo"
+3. **Permisos insuficientes** - No se pueden otorgar permisos a un usuario inexistente
+
+## Solución implementada
+
+### Script de creación de usuario (`create-odoo-user.sh`)
+- Verifica y crea el usuario `odoo` automáticamente
+- Otorga permisos de SUPERUSER para evitar problemas de permisos
+- Verifica la conexión antes de continuar
+
+### Scripts mejorados
+- `start.sh`: Ahora crea el usuario antes de intentar operaciones
+- `start-alternative.sh`: Versión simplificada con creación de usuario
+- Mejor manejo de errores y logging detallado
 
 ## Soluciones implementadas
 
@@ -29,7 +40,16 @@ El error que estás viendo indica que aunque PostgreSQL está disponible y acept
 
 ## Cómo usar los scripts de debugging
 
-### En Railway CLI:
+### Opción 1: Crear usuario manualmente (RECOMENDADO)
+
+```bash
+# 1. Ejecutar el script de creación de usuario
+railway run /usr/local/bin/create-odoo-user.sh
+
+# 2. Una vez creado el usuario, hacer redeploy normal
+```
+
+### Opción 2: Debugging completo
 
 ```bash
 # 1. Ejecutar el script de debugging
@@ -69,6 +89,20 @@ PGDATABASE=odoo_db
 ```
 
 ## Pasos de troubleshooting
+
+### SOLUCIÓN RÁPIDA (Recomendada):
+
+1. **Crear usuario manualmente:**
+   ```bash
+   railway run /usr/local/bin/create-odoo-user.sh
+   ```
+
+2. **Hacer redeploy:**
+   ```bash
+   railway up --detach
+   ```
+
+### SOLUCIÓN COMPLETA:
 
 1. **Ejecutar el script de debugging:**
    ```bash

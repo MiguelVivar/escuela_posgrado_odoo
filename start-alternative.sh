@@ -75,18 +75,29 @@ if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c
     if [ "$DB_USER" != "$ADMIN_USER" ]; then
         echo "Intentando con usuario admin..."
         if PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -c "SELECT 1;" >/dev/null 2>&1; then
-            echo "Conexión con admin exitosa, creando usuario si no existe..."
+            echo "Conexión con admin exitosa, verificando/creando usuario..."
             
-            # Crear usuario si no existe
-            PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -c "
-            DO \$\$
-            BEGIN
-                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DB_USER') THEN
-                    CREATE ROLE \"$DB_USER\" WITH LOGIN PASSWORD '$DB_PASSWORD';
-                    ALTER ROLE \"$DB_USER\" CREATEDB;
-                END IF;
-            END
-            \$\$;" || echo "Warning: No se pudo crear/configurar el usuario"
+            # Verificar si el usuario existe
+            USER_EXISTS=$(PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER';" 2>/dev/null || echo "")
+            
+            if [ -z "$USER_EXISTS" ]; then
+                echo "Creando usuario $DB_USER..."
+                if ! PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -c "CREATE ROLE \"$DB_USER\" WITH LOGIN PASSWORD '$DB_PASSWORD' CREATEDB;"; then
+                    echo "ERROR: No se pudo crear el usuario $DB_USER"
+                    exit 1
+                fi
+                echo "Usuario $DB_USER creado exitosamente!"
+            else
+                echo "Usuario $DB_USER existe, actualizando permisos..."
+                PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -c "ALTER ROLE \"$DB_USER\" WITH LOGIN PASSWORD '$DB_PASSWORD' CREATEDB;" || echo "Warning: No se pudieron actualizar permisos"
+            fi
+            
+            # Verificar conexión del usuario de Odoo
+            if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "SELECT 1;" >/dev/null 2>&1; then
+                echo "ERROR: El usuario $DB_USER aún no puede conectarse"
+                exit 1
+            fi
+            echo "Usuario $DB_USER puede conectarse correctamente!"
         else
             echo "ERROR: Tampoco se puede conectar con el usuario admin"
             exit 1
@@ -95,6 +106,8 @@ if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c
         echo "ERROR: Fallo de autenticación"
         exit 1
     fi
+else
+    echo "Conexión exitosa con usuario $DB_USER!"
 fi
 
 # Verificar/crear base de datos
