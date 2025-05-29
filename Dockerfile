@@ -36,10 +36,14 @@ RUN mkdir -p /mnt/extra-addons /var/log/odoo && \
 # Copiar archivos
 COPY ./config/odoo.conf /etc/odoo/
 COPY ./start.sh /usr/local/bin/start.sh
+COPY ./start-alternative.sh /usr/local/bin/start-alternative.sh
+COPY ./debug-connection.sh /usr/local/bin/debug-connection.sh
 COPY ./addons/ /mnt/extra-addons/
 
 # Ajustar permisos
 RUN chmod +x /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start-alternative.sh && \
+    chmod +x /usr/local/bin/debug-connection.sh && \
     chown -R odoo:odoo /mnt/extra-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
 

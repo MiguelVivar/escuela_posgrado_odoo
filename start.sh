@@ -37,6 +37,11 @@ workers = 2
 max_cron_threads = 1
 list_db = False
 db_template = template0
+db_maxconn = 64
+db_timeout = 120
+logfile = False
+log_handler = :INFO
+log_db = False
 EOF
 
 echo "Configuración de Odoo generada:"
@@ -49,6 +54,18 @@ admin_psql() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
         echo "Error ejecutando comando SQL. Código de salida: $exit_code"
+        return $exit_code
+    fi
+    return 0
+}
+
+# Función para ejecutar comandos psql con el usuario de Odoo
+user_psql() {
+    echo "Ejecutando SQL como usuario Odoo: $1"
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "$1"
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo "Error ejecutando comando SQL como usuario Odoo. Código de salida: $exit_code"
         return $exit_code
     fi
     return 0
@@ -71,6 +88,16 @@ if ! PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_POR
 fi
 echo "Conexión a PostgreSQL establecida correctamente!"
 
+# Verificar también la conexión con el usuario de Odoo si es diferente
+if [ "$DB_USER" != "$ADMIN_USER" ]; then
+    echo "Verificando conexión con usuario de Odoo ($DB_USER)..."
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "SELECT 1;" >/dev/null 2>&1; then
+        echo "Warning: El usuario de Odoo no puede conectarse aún. Esto será corregido durante la creación de la BD."
+    else
+        echo "Usuario de Odoo puede conectarse correctamente!"
+    fi
+fi
+
 echo "Verificando si la base de datos $DB_NAME existe..."
 DB_EXISTS=$(PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -lqt 2>/dev/null | cut -d \| -f 1 | grep -w "$DB_NAME" | head -1)
 
@@ -90,22 +117,49 @@ if [ -z "$DB_EXISTS" ]; then
   
   echo "Otorgando permisos al usuario $DB_USER..."
   admin_psql "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" TO \"$DB_USER\";"
-  admin_psql "ALTER DATABASE \"$DB_NAME\" SET search_path TO public;"
-  admin_psql "GRANT ALL PRIVILEGES ON SCHEMA public TO \"$DB_USER\";"
-  admin_psql "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";"
-  admin_psql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$DB_USER\";"
-  admin_psql "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \"$DB_USER\";"
-  admin_psql "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \"$DB_USER\";"
+  
+  # Conectar a la base de datos recién creada para otorgar permisos adicionales
+  echo "Otorgando permisos en esquema public..."
+  PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON SCHEMA public TO \"$DB_USER\";"
+  PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";"
+  PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$DB_USER\";"
+  PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \"$DB_USER\";"
+  PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \"$DB_USER\";"
+  
+  # Verificar que el usuario puede conectarse a la nueva base de datos
+  echo "Verificando conexión del usuario Odoo a la nueva base de datos..."
+  if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1; then
+      echo "Error: El usuario Odoo no puede conectarse a la base de datos recién creada"
+      exit 1
+  fi
+  echo "Conexión del usuario Odoo verificada exitosamente!"
 
   echo "Inicializando la base de datos con módulo base..."
-  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all; then
+  echo "DEBUG: Intentando inicializar con comando completo..."
+  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"
+  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
     echo "Error: Falló la inicialización de la base de datos"
     exit 1
   fi
   echo "Base de datos inicializada correctamente!"
 elif [ "$DB_INITIALIZED" = "f" ]; then
   echo "La base de datos $DB_NAME existe pero no está inicializada. Inicializando..."
-  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all; then
+  
+  # Verificar permisos del usuario antes de inicializar
+  echo "Verificando permisos del usuario Odoo en la base de datos existente..."
+  if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1; then
+      echo "El usuario Odoo no puede conectarse. Otorgando permisos..."
+      admin_psql "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" TO \"$DB_USER\";"
+      PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON SCHEMA public TO \"$DB_USER\";"
+      PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";"
+      PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$DB_USER\";"
+      PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \"$DB_USER\";"
+      PGPASSWORD="${ADMIN_PASSWORD:-$DB_PASSWORD}" psql -h "$DB_HOST" -p "$DB_PORT" -U "$ADMIN_USER" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \"$DB_USER\";"
+  fi
+  
+  echo "DEBUG: Intentando inicializar base de datos existente..."
+  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"
+  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
     echo "Error: Falló la inicialización de la base de datos existente"
     exit 1
   fi
