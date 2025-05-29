@@ -21,4 +21,4 @@ services:
     volumes:
       - ./addons:/mnt/extra-addons
       - ./config/odoo.conf:/etc/odoo/odoo.conf
-    command: odoo -c /etc/odoo/odoo.conf
+    command: odoo -c /etc/odoo/odoo.conf -i base --stop-after-init
