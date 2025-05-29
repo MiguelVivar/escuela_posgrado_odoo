@@ -40,7 +40,8 @@ COPY ./addons/ /mnt/extra-addons/
 
 # Ajustar permisos
 RUN chmod +x /usr/local/bin/start.sh && \
-    chown -R odoo:odoo /mnt/extra-addons
+    chown -R odoo:odoo /mnt/extra-addons && \
+    chown odoo:odoo /etc/odoo/odoo.conf
 
 # Usuario para Odoo
 USER odoo
