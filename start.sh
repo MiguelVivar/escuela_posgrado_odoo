@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# Configurar locale
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
 # Esperar a que la base de datos esté disponible
-until pg_isready -h ${PGHOST} -p ${PGPORT} -U ${PGUSER}; do
+until pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}"; do
   echo "Esperando a que PostgreSQL esté disponible..."
   sleep 2
 done

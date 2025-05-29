@@ -1,8 +1,16 @@
 FROM odoo:18
 
+# Configurar locale para evitar warnings de Perl
+ENV LANG=C.UTF-8
+ENV LANGUAGE=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # Instalar postgresql-client para pg_isready
 USER root
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y postgresql-client locales && \
+    rm -rf /var/lib/apt/lists/* && \
+    locale-gen C.UTF-8 && \
+    dpkg-reconfigure --frontend=noninteractive locales
 
 # Crear directorio para addons primero
 RUN mkdir -p /mnt/extra-addons
