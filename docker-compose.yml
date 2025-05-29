@@ -1,21 +1,28 @@
-version: '3.9'
+version: '3.1'
 
 services:
+  db:
+    image: postgres:17.5
+    container_name: odoo-db
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+
   odoo:
     image: odoo:18
-    container_name: odoo_local
+    container_name: odoo-web
+    depends_on:
+      - db
     ports:
       - "8069:8069"
-    environment:
-      - PGHOST=postgresql://postgres:aabkcRKIyFheDRyEWnMcRbgKSnJyOmlw@turntable.proxy.rlwy.net:23730/railway
-      - PGUSER=postgres
-      - PGPASSWORD=aabkcRKIyFheDRyEWnMcRbgKSnJyOmlw
-      - PGDATABASE=railway
-      - PGPORT=5432
-    command: odoo -d railway --db_sslmode=prefer
     volumes:
       - ./addons:/mnt/extra-addons
-      - odoo_data:/var/lib/odoo
-
-volumes:
-  odoo_data:
+      - ./config:/etc/odoo
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+    command: odoo -d odoo -i base --without-demo=all

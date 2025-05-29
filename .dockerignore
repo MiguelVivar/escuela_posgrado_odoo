@@ -1,0 +1,11 @@
+# Archivos y directorios que no se suben a Railway
+.git/
+.gitignore
+docker-compose.yml
+postgresql/
+README.md
+.env
+*.log
+*.pid
+.DS_Store
+Thumbs.db

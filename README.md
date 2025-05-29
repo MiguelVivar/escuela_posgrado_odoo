@@ -4,6 +4,14 @@
 
 Este proyecto implementa un sistema integral de aula virtual para la Escuela de Posgrado utilizando Odoo 18 con Docker y Docker Compose, incluyendo PostgreSQL como base de datos.
 
+## 🚀 Opciones de Despliegue
+
+### Desarrollo Local (Docker Compose)
+Para desarrollo local, usar el archivo `docker-compose.yml` incluido.
+
+### Producción en Railway
+Para despliegue en la nube, ver el archivo [`RAILWAY_DEPLOYMENT.md`](./RAILWAY_DEPLOYMENT.md) con instrucciones detalladas.
+
 ## 🎓 Acerca del Proyecto
 
 Este sistema de aula virtual está diseñado específicamente para la **Universidad Nacional San Luis Gonzaga de Ica - Escuela de Posgrado**, desarrollado por estudiantes de 4to ciclo del curso de Lenguaje de Programación Avanzada de la Facultad de Ingeniería de Sistemas.
@@ -811,7 +819,7 @@ docker-compose restart odoo
 | `unica_aula_virtual` | Rodrigo Conislla | [@Rodri2505](https://github.com/Rodri2505) |
 | `unica_caja` | Dylan Palomino | [@DaPcxD](https://github.com/DaPcxD) |
 | `unica_tramite_documentario` | **Desarrollo Colaborativo** | Todo el equipo |
-| `unica_grados_titulos` | **Desarrollo Colaborativo** | Todo el equipo |
+| `unica_grados_titulos` | **Desarrollo Colaborativa** | Todo el equipo |
 
 #### Proceso de Desarrollo
 
@@ -912,9 +920,9 @@ git push origin desarrollo-[nombre]-[modulo]
 docker-compose ps
 
 # Estado esperado:
-NAME       IMAGE           STATUS          PORTS
-odoo-db    postgres:17.5   Up X minutes    5432/tcp
-odoo-web   odoo:18         Up X minutes    0.0.0.0:8069->8069/tcp
+# NAME       IMAGE           STATUS          PORTS
+# odoo-db    postgres:17.5   Up X minutes    5432/tcp
+# odoo-web   odoo:18         Up X minutes    0.0.0.0:8069->8069/tcp
 ```
 
 ### Base de Datos Configurada
@@ -1155,6 +1163,7 @@ Si encuentras problemas:
 3. **Habilitar modo desarrollador**:
    - Ve a: http://localhost:8069/web?debug=1
    - O agrega `debug = True` en `config/odoo.conf`
+   - Reinicia el contenedor: `docker-compose restart odoo`
 
 ### Para Producción
 1. **Cambiar credenciales**:

@@ -1,0 +1,9 @@
+# Railway Configuration File
+# Este archivo le dice a Railway cómo construir y ejecutar tu aplicación
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
