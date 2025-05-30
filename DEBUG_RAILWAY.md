@@ -2,23 +2,25 @@
 
 ## Problema identificado
 
-El error que estás viendo indica que el usuario `odoo` no existe en PostgreSQL. Railway crea automáticamente la base de datos pero no crea usuarios personalizados. Esto causa:
+**ACTUALIZACIÓN**: El problema ahora es que el usuario `odoo` existe pero no tiene permisos de esquema suficientes. El error específico es:
 
-1. **Usuario "odoo" no existe** - El error principal
-2. **Fallo de autenticación** - Password authentication failed for user "odoo"
-3. **Permisos insuficientes** - No se pueden otorgar permisos a un usuario inexistente
+```
+ERROR: permission denied for schema public
+```
+
+Esto indica que aunque el usuario puede conectarse, no tiene permisos para crear objetos en el esquema `public` de PostgreSQL.
 
 ## Solución implementada
 
-### Script de creación de usuario (`create-odoo-user.sh`)
-- Verifica y crea el usuario `odoo` automáticamente
-- Otorga permisos de SUPERUSER para evitar problemas de permisos
-- Verifica la conexión antes de continuar
+### Script de corrección de permisos (`fix-permissions.sh`)
+- Otorga permisos de SUPERUSER al usuario `odoo`
+- Verifica que los permisos se hayan aplicado correctamente
+- Solución rápida y directa para el problema actual
 
 ### Scripts mejorados
-- `start.sh`: Ahora crea el usuario antes de intentar operaciones
-- `start-alternative.sh`: Versión simplificada con creación de usuario
-- Mejor manejo de errores y logging detallado
+- `start.sh`: Ahora otorga automáticamente SUPERUSER al crear/verificar usuarios
+- Eliminación de permisos granulares innecesarios
+- Enfoque simplificado que funciona con Railway
 
 ## Soluciones implementadas
 
@@ -40,23 +42,24 @@ El error que estás viendo indica que el usuario `odoo` no existe en PostgreSQL.
 
 ## Cómo usar los scripts de debugging
 
-### Opción 1: Crear usuario manualmente (RECOMENDADO)
+### 🚀 SOLUCIÓN INMEDIATA (RECOMENDADA):
 
 ```bash
-# 1. Ejecutar el script de creación de usuario
-railway run /usr/local/bin/create-odoo-user.sh
+# 1. Ejecutar el script de corrección de permisos
+railway run /usr/local/bin/fix-permissions.sh
 
-# 2. Una vez creado el usuario, hacer redeploy normal
+# 2. Una vez otorgados los permisos de SUPERUSER, hacer redeploy
+railway up --detach
 ```
 
-### Opción 2: Debugging completo
+### Alternativas si necesitas debugging:
 
 ```bash
-# 1. Ejecutar el script de debugging
+# 1. Ejecutar el script de debugging completo
 railway run /usr/local/bin/debug-connection.sh
 
-# 2. Si hay problemas, usar el script alternativo
-# Modificar temporalmente el Dockerfile para usar start-alternative.sh
+# 2. Crear usuario desde cero si es necesario
+railway run /usr/local/bin/create-odoo-user.sh
 ```
 
 ### Modificación temporal del Dockerfile:
@@ -90,11 +93,11 @@ PGDATABASE=odoo_db
 
 ## Pasos de troubleshooting
 
-### SOLUCIÓN RÁPIDA (Recomendada):
+### ⚡ SOLUCIÓN RÁPIDA (Para el error actual):
 
-1. **Crear usuario manualmente:**
+1. **Otorgar permisos de SUPERUSER:**
    ```bash
-   railway run /usr/local/bin/create-odoo-user.sh
+   railway run /usr/local/bin/fix-permissions.sh
    ```
 
 2. **Hacer redeploy:**
@@ -102,26 +105,24 @@ PGDATABASE=odoo_db
    railway up --detach
    ```
 
-### SOLUCIÓN COMPLETA:
-
-1. **Ejecutar el script de debugging:**
-   ```bash
-   railway run /usr/local/bin/debug-connection.sh
-   ```
-
-2. **Verificar logs detallados:**
+3. **Verificar logs:**
    ```bash
    railway logs --follow
    ```
 
-3. **Conectarse manualmente a la base de datos:**
+### 🔍 DEBUGGING COMPLETO (Si persisten problemas):
+
+1. **Ejecutar diagnóstico completo:**
    ```bash
-   railway connect postgres
+   railway run /usr/local/bin/debug-connection.sh
    ```
 
-4. **Si el problema persiste, usar script alternativo:**
-   - Modificar Dockerfile para usar `start-alternative.sh`
-   - Hacer redeploy
+2. **Conectarse manualmente a verificar:**
+   ```bash
+   railway connect postgres
+   \du
+   \l
+   ```
 
 ## Cambios principales en el código
 
