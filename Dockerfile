@@ -52,6 +52,10 @@ COPY ./smart-modules-installer.sh /usr/local/bin/smart-modules-installer.sh
 COPY ./railway-test-modules.sh /usr/local/bin/railway-test-modules.sh
 COPY ./modules-installer-function.sh /usr/local/bin/modules-installer-function.sh
 COPY ./test-modules-fix.sh /usr/local/bin/test-modules-fix.sh
+COPY ./diagnose-modules-railway.sh /usr/local/bin/diagnose-modules-railway.sh
+COPY ./force-modules-available.sh /usr/local/bin/force-modules-available.sh
+COPY ./enable-developer-mode.sh /usr/local/bin/enable-developer-mode.sh
+COPY ./solve-modules-railway.sh /usr/local/bin/solve-modules-railway.sh
 
 # Copiar módulos personalizados a un directorio dedicado
 COPY ./addons/ /mnt/custom-addons/
@@ -70,10 +74,12 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/fix-modules-railway.sh && \
     chmod +x /usr/local/bin/fix-om-hr-payroll.sh && \
     chmod +x /usr/local/bin/emergency-fix-om-hr-payroll.sh && \
-    chmod +x /usr/local/bin/smart-modules-installer.sh && \
-    chmod +x /usr/local/bin/railway-test-modules.sh && \
+    chmod +x /usr/local/bin/smart-modules-installer.sh && \    chmod +x /usr/local/bin/railway-test-modules.sh && \
     chmod +x /usr/local/bin/modules-installer-function.sh && \
-    chmod +x /usr/local/bin/test-modules-fix.sh && \
+    chmod +x /usr/local/bin/test-modules-fix.sh && \    chmod +x /usr/local/bin/diagnose-modules-railway.sh && \
+    chmod +x /usr/local/bin/force-modules-available.sh && \
+    chmod +x /usr/local/bin/enable-developer-mode.sh && \
+    chmod +x /usr/local/bin/solve-modules-railway.sh && \
     chown -R odoo:odoo /mnt/extra-addons /mnt/custom-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
 
