@@ -211,7 +211,8 @@ if [ -z "$DB_EXISTS" ]; then
         fi
       fi
     else
-    echo "No se encontraron módulos personalizados para instalar"
+      echo "No se encontraron módulos personalizados para instalar"
+    fi
   fi
 elif [ "$DB_INITIALIZED" = "f" ]; then
   echo "La base de datos $DB_NAME existe pero no está inicializada. Inicializando..."
