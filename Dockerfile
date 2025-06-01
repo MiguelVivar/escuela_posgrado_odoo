@@ -40,7 +40,10 @@ COPY ./start-alternative.sh /usr/local/bin/start-alternative.sh
 COPY ./debug-connection.sh /usr/local/bin/debug-connection.sh
 COPY ./create-odoo-user.sh /usr/local/bin/create-odoo-user.sh
 COPY ./fix-permissions.sh /usr/local/bin/fix-permissions.sh
-COPY ./addons/ /mnt/extra-addons/
+
+# Cambia la copia de addons para no sobreescribir en runtime
+COPY ./addons/ /mnt/built-addons/
+RUN chown odoo:odoo /mnt/built-addons
 
 # Ajustar permisos
 RUN chmod +x /usr/local/bin/start.sh && \
@@ -50,6 +53,8 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/fix-permissions.sh && \
     chown -R odoo:odoo /mnt/extra-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
+
+RUN apt-get update && apt-get install -y ca-certificates libssl-dev
 
 # Usuario para Odoo
 USER odoo
