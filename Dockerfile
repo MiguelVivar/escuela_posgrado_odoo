@@ -43,6 +43,11 @@ COPY ./fix-permissions.sh /usr/local/bin/fix-permissions.sh
 COPY ./install-custom-modules.sh /usr/local/bin/install-custom-modules.sh
 COPY ./verify-custom-modules.sh /usr/local/bin/verify-custom-modules.sh
 COPY ./check-modules-railway.sh /usr/local/bin/check-modules-railway.sh
+COPY ./debug-modules-railway.sh /usr/local/bin/debug-modules-railway.sh
+COPY ./smart-modules-installer.sh /usr/local/bin/smart-modules-installer.sh
+COPY ./railway-test-modules.sh /usr/local/bin/railway-test-modules.sh
+COPY ./modules-installer-function.sh /usr/local/bin/modules-installer-function.sh
+COPY ./test-modules-fix.sh /usr/local/bin/test-modules-fix.sh
 
 # Copiar módulos personalizados a un directorio dedicado
 COPY ./addons/ /mnt/custom-addons/

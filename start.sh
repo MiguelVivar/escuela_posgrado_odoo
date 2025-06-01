@@ -52,6 +52,12 @@ EOF
 echo "Configuración de Odoo generada:"
 cat /etc/odoo/odoo.conf
 
+# Incluir funciones mejoradas de instalación de módulos
+if [ -f "/usr/local/bin/modules-installer-function.sh" ]; then
+    echo "📦 Cargando funciones mejoradas de instalación de módulos..."
+    source /usr/local/bin/modules-installer-function.sh
+fi
+
 # Función para ejecutar comandos psql con el usuario admin
 admin_psql() {
     echo "Ejecutando SQL: $1"
@@ -170,35 +176,41 @@ if [ -z "$DB_EXISTS" ]; then
   fi
   echo "Base de datos inicializada correctamente!"
   
-  # Instalar módulos personalizados si están disponibles
-  echo "Verificando módulos personalizados disponibles..."
-  if [ -d "/mnt/custom-addons" ] && [ "$(ls -A /mnt/custom-addons)" ]; then
-    echo "Módulos personalizados encontrados en /mnt/custom-addons:"
-    ls -la /mnt/custom-addons/
-    
-    # Obtener lista de módulos personalizados disponibles
-    CUSTOM_MODULES=""
-    for module_path in /mnt/custom-addons/*/; do
-      if [ -d "$module_path" ] && [ -f "$module_path/__manifest__.py" ]; then
-        module_name=$(basename "$module_path")
-        echo "Módulo personalizado encontrado: $module_name"
-        if [ -z "$CUSTOM_MODULES" ]; then
-          CUSTOM_MODULES="$module_name"
+  # Instalar módulos personalizados usando función mejorada
+  echo "🚀 Iniciando instalación de módulos personalizados..."
+  if command -v install_custom_modules_improved >/dev/null 2>&1; then
+    echo "📦 Usando instalador mejorado de módulos..."
+    install_custom_modules_improved
+  else
+    echo "⚠️ Función mejorada no disponible, usando método tradicional..."
+    echo "Verificando módulos personalizados disponibles..."
+    if [ -d "/mnt/custom-addons" ] && [ "$(ls -A /mnt/custom-addons)" ]; then
+      echo "Módulos personalizados encontrados en /mnt/custom-addons:"
+      ls -la /mnt/custom-addons/
+      
+      # Obtener lista de módulos personalizados disponibles
+      CUSTOM_MODULES=""
+      for module_path in /mnt/custom-addons/*/; do
+        if [ -d "$module_path" ] && [ -f "$module_path/__manifest__.py" ]; then
+          module_name=$(basename "$module_path")
+          echo "Módulo personalizado encontrado: $module_name"
+          if [ -z "$CUSTOM_MODULES" ]; then
+            CUSTOM_MODULES="$module_name"
+          else
+            CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+          fi
+        fi
+      done
+      
+      if [ ! -z "$CUSTOM_MODULES" ]; then
+        echo "Instalando módulos personalizados: $CUSTOM_MODULES"
+        if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
+          echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
         else
-          CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+          echo "Módulos personalizados instalados exitosamente!"
         fi
       fi
-    done
-    
-    if [ ! -z "$CUSTOM_MODULES" ]; then
-      echo "Instalando módulos personalizados: $CUSTOM_MODULES"
-      if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
-        echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
-      else
-        echo "Módulos personalizados instalados exitosamente!"
-      fi
-    fi
-  else
+    else
     echo "No se encontraron módulos personalizados para instalar"
   fi
 elif [ "$DB_INITIALIZED" = "f" ]; then
