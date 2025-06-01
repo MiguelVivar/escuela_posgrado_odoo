@@ -71,9 +71,9 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/verify-custom-modules.sh && \
     chmod +x /usr/local/bin/check-modules-railway.sh && \
     chmod +x /usr/local/bin/debug-module-files.sh && \
-    chmod +x /usr/local/bin/fix-modules-railway.sh && \
-    chmod +x /usr/local/bin/fix-om-hr-payroll.sh && \
-    chmod +x /usr/local/bin/emergency-fix-om-hr-payroll.sh && \    chmod +x /usr/local/bin/smart-modules-installer.sh && \
+    chmod +x /usr/local/bin/fix-modules-railway.sh && \    chmod +x /usr/local/bin/fix-om-hr-payroll.sh && \
+    chmod +x /usr/local/bin/emergency-fix-om-hr-payroll.sh && \
+    chmod +x /usr/local/bin/smart-modules-installer.sh && \
     chmod +x /usr/local/bin/railway-test-modules.sh && \
     chmod +x /usr/local/bin/modules-installer-function.sh && \
     chmod +x /usr/local/bin/test-modules-fix.sh && \
