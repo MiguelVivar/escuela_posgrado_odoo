@@ -54,6 +54,7 @@ En Railway, configura estas variables de entorno:
 - **Detección automática de variables de entorno** de Railway
 - **Configuración dinámica** de Odoo basada en variables de entorno
 - **Verificación inteligente** de inicialización de base de datos
+- **Instalación automática de módulos personalizados** desde `/mnt/custom-addons`
 - **Workers limitados a 2** para mejor rendimiento en Railway
 - **Memoria optimizada** para contenedores
 - **Conexión automática** a PostgreSQL usando variables de Railway
@@ -66,8 +67,26 @@ El script `start.sh` incluye las siguientes mejoras:
 1. **Mapeo automático** de variables de Railway (`PGHOST` → `DB_HOST`, etc.)
 2. **Verificación de inicialización** de la base de datos
 3. **Generación dinámica** del archivo de configuración de Odoo
-4. **Logs detallados** para debugging
-5. **Manejo de errores** robusto
+4. **Instalación automática de módulos personalizados** en cada arranque
+5. **Verificación del estado** de módulos antes de la instalación
+6. **Logs detallados** para debugging
+7. **Manejo de errores** robusto
+
+### 📦 Instalación automática de módulos personalizados:
+
+El sistema ahora detecta e instala automáticamente todos los módulos en `/addons/`:
+- **Detección automática**: Busca módulos con `__manifest__.py` válido
+- **Verificación de estado**: Comprueba si ya están instalados en la base de datos
+- **Instalación inteligente**: Solo instala módulos nuevos o que necesitan actualización
+- **Logs detallados**: Muestra el progreso de cada módulo
+
+Módulos incluidos:
+- `education_core`: Sistema educativo principal
+- `education_attendances`: Control de asistencias
+- `education_theme`: Tema personalizado para educación
+- `muk_web_*`: Módulos de interfaz mejorada
+- `om_hr_payroll`: Sistema de nóminas
+- `query_deluxe`: Herramientas de consulta avanzada
 
 ## 📋 Checklist de despliegue:
 
@@ -115,3 +134,28 @@ El script `start.sh` incluye las siguientes mejoras:
 - El script muestra todas las variables detectadas en los logs
 - Railway debe crear automáticamente `PGHOST`, `PGUSER`, etc.
 - Si no aparecen, recrea la base de datos en Railway
+
+### Los módulos personalizados no se instalan:
+- **Verificación manual**: Ejecuta `railway run /usr/local/bin/check-modules-railway.sh`
+- **Instalación manual**: Ejecuta `railway run /usr/local/bin/install-custom-modules.sh`
+- **Ver logs detallados**: `railway logs --follow` para ver el proceso de instalación
+- **Verificar directorio**: Los módulos deben estar en `/mnt/custom-addons` con `__manifest__.py` válido
+
+### Comandos útiles para verificación:
+
+```bash
+# Verificar estado de módulos personalizados
+railway run /usr/local/bin/check-modules-railway.sh
+
+# Instalar módulos manualmente si es necesario
+railway run /usr/local/bin/install-custom-modules.sh
+
+# Verificar estructura de archivos
+railway run /usr/local/bin/verify-custom-modules.sh
+
+# Ver logs en tiempo real
+railway logs --follow
+
+# Conectarse a la base de datos para verificación manual
+railway connect postgres
+```

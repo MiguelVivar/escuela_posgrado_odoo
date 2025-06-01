@@ -252,6 +252,54 @@ elif [ "$DB_INITIALIZED" = "f" ]; then
   fi
 else
   echo "La base de datos $DB_NAME ya existe y está inicializada."
+  
+  # Instalar/verificar módulos personalizados incluso si la BD ya existe
+  echo "Verificando módulos personalizados disponibles..."
+  if [ -d "/mnt/custom-addons" ] && [ "$(ls -A /mnt/custom-addons)" ]; then
+    echo "Módulos personalizados encontrados en /mnt/custom-addons:"
+    ls -la /mnt/custom-addons/
+    
+    # Obtener lista de módulos personalizados disponibles
+    CUSTOM_MODULES=""
+    for module_path in /mnt/custom-addons/*/; do
+      if [ -d "$module_path" ] && [ -f "$module_path/__manifest__.py" ]; then
+        module_name=$(basename "$module_path")
+        echo "Módulo personalizado encontrado: $module_name"
+        
+        # Verificar si el módulo ya está instalado
+        MODULE_STATE=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT state FROM ir_module_module WHERE name='$module_name';" 2>/dev/null || echo "not_found")
+        echo "Estado del módulo $module_name: $MODULE_STATE"
+        
+        if [ "$MODULE_STATE" = "not_found" ] || [ "$MODULE_STATE" = "uninstalled" ]; then
+          if [ -z "$CUSTOM_MODULES" ]; then
+            CUSTOM_MODULES="$module_name"
+          else
+            CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+          fi
+        elif [ "$MODULE_STATE" = "to upgrade" ]; then
+          echo "Módulo $module_name necesita actualización"
+          if [ -z "$CUSTOM_MODULES" ]; then
+            CUSTOM_MODULES="$module_name"
+          else
+            CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+          fi
+        fi
+      fi
+    done
+    
+    if [ ! -z "$CUSTOM_MODULES" ]; then
+      echo "Instalando/actualizando módulos personalizados: $CUSTOM_MODULES"
+      if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
+        echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
+      else
+        echo "Módulos personalizados instalados/actualizados exitosamente!"
+      fi
+    else
+      echo "Todos los módulos personalizados ya están instalados"
+    fi
+  else
+    echo "No se encontraron módulos personalizados para instalar"
+  fi
 fi
 
 echo "Iniciando Odoo normalmente..."

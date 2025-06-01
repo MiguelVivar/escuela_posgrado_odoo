@@ -12,6 +12,22 @@ Para desarrollo local, usar el archivo `docker-compose.yml` incluido.
 ### Producción en Railway
 Para despliegue en la nube, ver el archivo [`RAILWAY_DEPLOYMENT.md`](./RAILWAY_DEPLOYMENT.md) con instrucciones detalladas.
 
+## 📦 Módulos Personalizados
+
+Este proyecto incluye **instalación automática de módulos personalizados** optimizada para Railway:
+
+- **Detección automática**: Los módulos en `/addons/` se instalan automáticamente
+- **Verificación inteligente**: Solo instala módulos nuevos o que necesitan actualización
+- **Logs detallados**: Progreso visible en los logs de Railway
+
+**Módulos incluidos:**
+- Sistema educativo (`education_*`)
+- Módulos de interfaz (`muk_web_*`) 
+- Sistema de nóminas (`om_hr_payroll`)
+- Herramientas avanzadas (`query_deluxe`)
+
+📖 **Ver guía completa**: [`CUSTOM_MODULES_RAILWAY.md`](./CUSTOM_MODULES_RAILWAY.md)
+
 ## 🎓 Acerca del Proyecto
 
 Este sistema de aula virtual está diseñado específicamente para la **Universidad Nacional San Luis Gonzaga de Ica - Escuela de Posgrado**, desarrollado por estudiantes de 4to ciclo del curso de Lenguaje de Programación Avanzada de la Facultad de Ingeniería de Sistemas.

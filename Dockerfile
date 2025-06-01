@@ -42,6 +42,7 @@ COPY ./create-odoo-user.sh /usr/local/bin/create-odoo-user.sh
 COPY ./fix-permissions.sh /usr/local/bin/fix-permissions.sh
 COPY ./install-custom-modules.sh /usr/local/bin/install-custom-modules.sh
 COPY ./verify-custom-modules.sh /usr/local/bin/verify-custom-modules.sh
+COPY ./check-modules-railway.sh /usr/local/bin/check-modules-railway.sh
 
 # Copiar módulos personalizados a un directorio dedicado
 COPY ./addons/ /mnt/custom-addons/
@@ -55,6 +56,7 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/fix-permissions.sh && \
     chmod +x /usr/local/bin/install-custom-modules.sh && \
     chmod +x /usr/local/bin/verify-custom-modules.sh && \
+    chmod +x /usr/local/bin/check-modules-railway.sh && \
     chown -R odoo:odoo /mnt/extra-addons /mnt/custom-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
 
