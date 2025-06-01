@@ -203,9 +203,25 @@ if [ -z "$DB_EXISTS" ]; then
       done
       
       if [ ! -z "$CUSTOM_MODULES" ]; then
+    echo "=== DEBUG: Verificando archivos de módulos antes de instalar ==="
+    if [ -f "/usr/local/bin/debug-module-files.sh" ]; then
+      /usr/local/bin/debug-module-files.sh
+    fi
+    
+    echo "=== Aplicando corrección específica para om_hr_payroll ==="
+    if [ -f "/usr/local/bin/fix-om-hr-payroll.sh" ]; then
+      /usr/local/bin/fix-om-hr-payroll.sh
+    fi
+    echo "=== FIN DEBUG ==="
+        
         echo "Instalando módulos personalizados: $CUSTOM_MODULES"
         if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
           echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
+          echo "=== DEBUG: Re-verificando archivos después del error ==="
+          if [ -f "/usr/local/bin/debug-module-files.sh" ]; then
+            /usr/local/bin/debug-module-files.sh
+          fi
+          echo "=== FIN DEBUG ==="
         else
           echo "Módulos personalizados instalados exitosamente!"
         fi
@@ -301,9 +317,25 @@ else
     done
     
     if [ ! -z "$CUSTOM_MODULES" ]; then
+      echo "=== DEBUG: Verificando archivos de módulos antes de instalar ==="
+      if [ -f "/usr/local/bin/debug-module-files.sh" ]; then
+        /usr/local/bin/debug-module-files.sh
+      fi
+      
+      echo "=== Aplicando corrección específica para om_hr_payroll ==="
+      if [ -f "/usr/local/bin/fix-om-hr-payroll.sh" ]; then
+        /usr/local/bin/fix-om-hr-payroll.sh
+      fi
+      echo "=== FIN DEBUG ==="
+      
       echo "Instalando/actualizando módulos personalizados: $CUSTOM_MODULES"
       if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
         echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
+        echo "=== DEBUG: Re-verificando archivos después del error ==="
+        if [ -f "/usr/local/bin/debug-module-files.sh" ]; then
+          /usr/local/bin/debug-module-files.sh
+        fi
+        echo "=== FIN DEBUG ==="
       else
         echo "Módulos personalizados instalados/actualizados exitosamente!"
       fi

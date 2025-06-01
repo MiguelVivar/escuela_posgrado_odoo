@@ -44,6 +44,10 @@ COPY ./install-custom-modules.sh /usr/local/bin/install-custom-modules.sh
 COPY ./verify-custom-modules.sh /usr/local/bin/verify-custom-modules.sh
 COPY ./check-modules-railway.sh /usr/local/bin/check-modules-railway.sh
 COPY ./debug-modules-railway.sh /usr/local/bin/debug-modules-railway.sh
+COPY ./debug-module-files.sh /usr/local/bin/debug-module-files.sh
+COPY ./fix-modules-railway.sh /usr/local/bin/fix-modules-railway.sh
+COPY ./fix-om-hr-payroll.sh /usr/local/bin/fix-om-hr-payroll.sh
+COPY ./emergency-fix-om-hr-payroll.sh /usr/local/bin/emergency-fix-om-hr-payroll.sh
 COPY ./smart-modules-installer.sh /usr/local/bin/smart-modules-installer.sh
 COPY ./railway-test-modules.sh /usr/local/bin/railway-test-modules.sh
 COPY ./modules-installer-function.sh /usr/local/bin/modules-installer-function.sh
@@ -60,8 +64,8 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/create-odoo-user.sh && \
     chmod +x /usr/local/bin/fix-permissions.sh && \
     chmod +x /usr/local/bin/install-custom-modules.sh && \
-    chmod +x /usr/local/bin/verify-custom-modules.sh && \
-    chmod +x /usr/local/bin/check-modules-railway.sh && \
+    chmod +x /usr/local/bin/verify-custom-modules.sh && \    chmod +x /usr/local/bin/check-modules-railway.sh && \    chmod +x /usr/local/bin/debug-module-files.sh && \    chmod +x /usr/local/bin/fix-modules-railway.sh && \    chmod +x /usr/local/bin/fix-om-hr-payroll.sh && \
+    chmod +x /usr/local/bin/emergency-fix-om-hr-payroll.sh && \
     chown -R odoo:odoo /mnt/extra-addons /mnt/custom-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
 
