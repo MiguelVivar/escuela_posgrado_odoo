@@ -30,20 +30,22 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/wkhtmltox.deb
 
 # Configurar directorios
-RUN mkdir -p /mnt/extra-addons /var/log/odoo && \
-    chown odoo:odoo /mnt/extra-addons /var/log/odoo
+RUN mkdir -p /mnt/extra-addons /mnt/custom-addons /var/log/odoo && \
+    chown odoo:odoo /mnt/extra-addons /mnt/custom-addons /var/log/odoo
 
-# Copiar archivos
+# Copiar archivos de configuración y scripts
 COPY ./config/odoo.conf /etc/odoo/
 COPY ./start.sh /usr/local/bin/start.sh
 COPY ./start-alternative.sh /usr/local/bin/start-alternative.sh
 COPY ./debug-connection.sh /usr/local/bin/debug-connection.sh
 COPY ./create-odoo-user.sh /usr/local/bin/create-odoo-user.sh
 COPY ./fix-permissions.sh /usr/local/bin/fix-permissions.sh
+COPY ./install-custom-modules.sh /usr/local/bin/install-custom-modules.sh
+COPY ./verify-custom-modules.sh /usr/local/bin/verify-custom-modules.sh
 
-# Cambia la copia de addons para no sobreescribir en runtime
-COPY ./addons/ /mnt/built-addons/
-RUN chown odoo:odoo /mnt/built-addons
+# Copiar módulos personalizados a un directorio dedicado
+COPY ./addons/ /mnt/custom-addons/
+RUN chown -R odoo:odoo /mnt/custom-addons
 
 # Ajustar permisos
 RUN chmod +x /usr/local/bin/start.sh && \
@@ -51,7 +53,9 @@ RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/debug-connection.sh && \
     chmod +x /usr/local/bin/create-odoo-user.sh && \
     chmod +x /usr/local/bin/fix-permissions.sh && \
-    chown -R odoo:odoo /mnt/extra-addons && \
+    chmod +x /usr/local/bin/install-custom-modules.sh && \
+    chmod +x /usr/local/bin/verify-custom-modules.sh && \
+    chown -R odoo:odoo /mnt/extra-addons /mnt/custom-addons && \
     chown odoo:odoo /etc/odoo/odoo.conf
 
 RUN apt-get update && apt-get install -y ca-certificates libssl-dev

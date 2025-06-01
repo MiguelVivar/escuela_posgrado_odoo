@@ -202,7 +202,7 @@ Funcionalidades:
 - Notificaciones de estado
 
 ### 🎓 unica_grados_titulos - Sistema de Grados y Títulos
-**Desarrollo Colaborativo**: Equipo completo
+**Desarrollo Colaborativa**: Equipo completo
 
 Funcionalidades:
 - Registro de grados académicos

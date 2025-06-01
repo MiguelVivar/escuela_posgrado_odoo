@@ -25,7 +25,7 @@ echo "================================="
 echo "Generando configuración dinámica de Odoo..."
 cat > /etc/odoo/odoo.conf << EOF
 [options]
-addons_path = /mnt/extra-addons
+addons_path = /usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/custom-addons
 admin_passwd = admin
 db_host = $DB_HOST
 db_port = $DB_PORT
@@ -42,6 +42,11 @@ db_timeout = 120
 logfile = False
 log_handler = :INFO
 log_db = False
+limit_request = 8192
+limit_memory_hard = 2684354560
+limit_memory_soft = 2147483648
+proxy_mode = True
+server_wide_modules = base,web
 EOF
 
 echo "Configuración de Odoo generada:"
@@ -153,12 +158,43 @@ if [ -z "$DB_EXISTS" ]; then
 
   echo "Inicializando la base de datos con módulo base..."
   echo "DEBUG: Intentando inicializar con comando completo..."
-  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"
-  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
+  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
     echo "Error: Falló la inicialización de la base de datos"
     exit 1
   fi
   echo "Base de datos inicializada correctamente!"
+  
+  # Instalar módulos personalizados si están disponibles
+  echo "Verificando módulos personalizados disponibles..."
+  if [ -d "/mnt/custom-addons" ] && [ "$(ls -A /mnt/custom-addons)" ]; then
+    echo "Módulos personalizados encontrados en /mnt/custom-addons:"
+    ls -la /mnt/custom-addons/
+    
+    # Obtener lista de módulos personalizados disponibles
+    CUSTOM_MODULES=""
+    for module_path in /mnt/custom-addons/*/; do
+      if [ -d "$module_path" ] && [ -f "$module_path/__manifest__.py" ]; then
+        module_name=$(basename "$module_path")
+        echo "Módulo personalizado encontrado: $module_name"
+        if [ -z "$CUSTOM_MODULES" ]; then
+          CUSTOM_MODULES="$module_name"
+        else
+          CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+        fi
+      fi
+    done
+    
+    if [ ! -z "$CUSTOM_MODULES" ]; then
+      echo "Instalando módulos personalizados: $CUSTOM_MODULES"
+      if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
+        echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
+      else
+        echo "Módulos personalizados instalados exitosamente!"
+      fi
+    fi
+  else
+    echo "No se encontraron módulos personalizados para instalar"
+  fi
 elif [ "$DB_INITIALIZED" = "f" ]; then
   echo "La base de datos $DB_NAME existe pero no está inicializada. Inicializando..."
   
@@ -169,14 +205,45 @@ elif [ "$DB_INITIALIZED" = "f" ]; then
       exit 1
   fi
   echo "Usuario Odoo puede conectarse a la base de datos existente!"
-  
-  echo "DEBUG: Intentando inicializar base de datos existente..."
+    echo "DEBUG: Intentando inicializar base de datos existente..."
   echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"
   if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
     echo "Error: Falló la inicialización de la base de datos existente"
     exit 1
   fi
   echo "Base de datos inicializada correctamente!"
+  
+  # Instalar módulos personalizados si están disponibles
+  echo "Verificando módulos personalizados disponibles..."
+  if [ -d "/mnt/custom-addons" ] && [ "$(ls -A /mnt/custom-addons)" ]; then
+    echo "Módulos personalizados encontrados en /mnt/custom-addons:"
+    ls -la /mnt/custom-addons/
+    
+    # Obtener lista de módulos personalizados disponibles
+    CUSTOM_MODULES=""
+    for module_path in /mnt/custom-addons/*/; do
+      if [ -d "$module_path" ] && [ -f "$module_path/__manifest__.py" ]; then
+        module_name=$(basename "$module_path")
+        echo "Módulo personalizado encontrado: $module_name"
+        if [ -z "$CUSTOM_MODULES" ]; then
+          CUSTOM_MODULES="$module_name"
+        else
+          CUSTOM_MODULES="$CUSTOM_MODULES,$module_name"
+        fi
+      fi
+    done
+    
+    if [ ! -z "$CUSTOM_MODULES" ]; then
+      echo "Instalando módulos personalizados: $CUSTOM_MODULES"
+      if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i "$CUSTOM_MODULES" --stop-after-init --without-demo=all --log-level=info; then
+        echo "Advertencia: Algunos módulos personalizados podrían no haberse instalado correctamente"
+      else
+        echo "Módulos personalizados instalados exitosamente!"
+      fi
+    fi
+  else
+    echo "No se encontraron módulos personalizados para instalar"
+  fi
 else
   echo "La base de datos $DB_NAME ya existe y está inicializada."
 fi
