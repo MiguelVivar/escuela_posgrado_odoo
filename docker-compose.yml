@@ -1,3 +1,5 @@
+version: '3.1'
+
 services:
   db:
     image: postgres:15
@@ -19,8 +21,4 @@ services:
     volumes:
       - ./addons:/mnt/extra-addons
       - ./config/odoo.conf:/etc/odoo/odoo.conf
-    environment:
-      - HOST=db
-      - USER=postgres
-      - PASSWORD=malgytYMprctnPKfvpAkafaIEyqkBMSt
-    command: ["odoo", "-c", "/etc/odoo/odoo.conf", "-d", "odoo_db", "-u", "all"]
+    command: odoo -c /etc/odoo/odoo.conf -i base --stop-after-init
