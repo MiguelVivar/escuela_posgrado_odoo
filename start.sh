@@ -119,8 +119,14 @@ if [ "$DB_USER" != "$ADMIN_USER" ]; then
     
     # Verificar conexión del usuario de Odoo
     echo "Verificando conexión con usuario de Odoo ($DB_USER)..."
-    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "SELECT 1;" >/dev/null 2>&1; then
+    if ! PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
         echo "Error: El usuario de Odoo no puede conectarse después de la creación/actualización"
+        echo "Intentando diagnóstico..."
+        echo "Variables de conexión:"
+        echo "  DB_HOST: $DB_HOST"
+        echo "  DB_PORT: $DB_PORT" 
+        echo "  DB_USER: $DB_USER"
+        echo "  DB_PASSWORD: [OCULTA]"
         exit 1
     else
         echo "Usuario de Odoo puede conectarse correctamente!"

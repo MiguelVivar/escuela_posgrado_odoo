@@ -12,13 +12,28 @@ services:
       - ./postgresql:/var/lib/postgresql/data
 
   odoo:
-    image: odoo:18
+    build: .
     container_name: odoo-web
     depends_on:
       - db
     ports:
       - "8069:8069"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=odoo
+      - DB_PASSWORD=odoo
+      - DB_NAME=odoo_db
+      - ADMIN_USER=postgres
+      - ADMIN_PASSWORD=malgytYMprctnPKfvpAkafaIEyqkBMSt
     volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
       - ./addons:/mnt/extra-addons
-      - ./config/odoo.conf:/etc/odoo/odoo.conf
-    command: odoo -c /etc/odoo/odoo.conf -i base --stop-after-init
+      - ./logs:/var/log/odoo
+
+volumes:
+  odoo-web-data:
+    name: odoo-18-docker_odoo-web-data
+  odoo-db-data:
+    name: odoo-18-docker_odoo-db-data
