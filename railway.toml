@@ -15,3 +15,6 @@ healthcheckTimeout = 300
 ODOO_ADDONS_PATH = "/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons"
 ODOO_DATA_DIR = "/var/lib/odoo"
 ODOO_LOG_LEVEL = "info"
+
+# Variable opcional para instalar dependencias adicionales
+# INSTALL_OPTIONAL_DEPS = "true"

@@ -5,6 +5,12 @@ set -e
 
 echo "🚀 Iniciando Odoo en Railway..."
 
+# Instalar dependencias opcionales si están definidas en variables de entorno
+if [ "$INSTALL_OPTIONAL_DEPS" = "true" ]; then
+    echo "🔧 Instalando dependencias opcionales..."
+    pip3 install --no-cache-dir num2words qrcode || echo "⚠️ Algunas dependencias opcionales fallaron"
+fi
+
 # Variables de entorno
 DB_HOST=${DATABASE_HOST:-$DB_HOST}
 DB_PORT=${DATABASE_PORT:-5432}
