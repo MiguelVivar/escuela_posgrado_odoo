@@ -155,10 +155,10 @@ if [ -z "$DB_EXISTS" ]; then
       exit 1
   fi
   echo "Conexión del usuario Odoo verificada exitosamente!"
-
   echo "Inicializando la base de datos con módulo base..."
   echo "DEBUG: Intentando inicializar con comando completo..."
-  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
+  echo "Comando: python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d \"$DB_NAME\" -i base --stop-after-init --without-demo=all --log-level=debug"
+  if ! python3 /usr/bin/odoo -c /etc/odoo/odoo.conf -d "$DB_NAME" -i base --stop-after-init --without-demo=all --log-level=debug; then
     echo "Error: Falló la inicialización de la base de datos"
     exit 1
   fi
