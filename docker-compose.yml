@@ -30,6 +30,7 @@ services:
       - odoo-web-data:/var/lib/odoo
       - ./config:/etc/odoo
       - ./addons:/mnt/extra-addons
+      - ./custom-addons:/mnt/custom-addons
       - ./logs:/var/log/odoo
 
 volumes:
