@@ -30,13 +30,25 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/wkhtmltox.deb
 
 # Configurar directorios
-RUN mkdir -p /mnt/extra-addons /var/log/odoo && \
-    chown odoo:odoo /mnt/extra-addons /var/log/odoo
+RUN mkdir -p /mnt/extra-addons /var/log/odoo /var/lib/odoo && \
+    chown odoo:odoo /mnt/extra-addons /var/log/odoo /var/lib/odoo
+
+# Instalar dependencias de Python para addons personalizados
+RUN pip3 install --no-cache-dir \
+    xlsxwriter \
+    num2words \
+    qrcode \
+    python-dateutil \
+    requests \
+    cryptography \
+    pillow
 
 # Copiar archivos
 COPY ./config/odoo.conf /etc/odoo/
 COPY ./start.sh /usr/local/bin/start.sh
 COPY ./start-alternative.sh /usr/local/bin/start-alternative.sh
+COPY ./start-railway.sh /usr/local/bin/start-railway.sh
+COPY ./install-addons.sh /usr/local/bin/install-addons.sh
 COPY ./debug-connection.sh /usr/local/bin/debug-connection.sh
 COPY ./create-odoo-user.sh /usr/local/bin/create-odoo-user.sh
 COPY ./fix-permissions.sh /usr/local/bin/fix-permissions.sh
@@ -45,10 +57,13 @@ COPY ./addons/ /mnt/extra-addons/
 # Ajustar permisos
 RUN chmod +x /usr/local/bin/start.sh && \
     chmod +x /usr/local/bin/start-alternative.sh && \
+    chmod +x /usr/local/bin/start-railway.sh && \
+    chmod +x /usr/local/bin/install-addons.sh && \
     chmod +x /usr/local/bin/debug-connection.sh && \
     chmod +x /usr/local/bin/create-odoo-user.sh && \
     chmod +x /usr/local/bin/fix-permissions.sh && \
     chown -R odoo:odoo /mnt/extra-addons && \
+    chown -R odoo:odoo /var/lib/odoo && \
     chown odoo:odoo /etc/odoo/odoo.conf
 
 # Usuario para Odoo
@@ -58,4 +73,4 @@ USER odoo
 EXPOSE 8069
 
 # Comando por defecto
-CMD ["/usr/local/bin/start.sh"]
+CMD ["/usr/local/bin/start-railway.sh"]

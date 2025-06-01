@@ -7,3 +7,11 @@ builder = "dockerfile"
 [deploy]
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+healthcheckPath = "/web/health"
+healthcheckTimeout = 300
+
+[env]
+# Variables específicas para addons personalizados
+ODOO_ADDONS_PATH = "/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons"
+ODOO_DATA_DIR = "/var/lib/odoo"
+ODOO_LOG_LEVEL = "info"
